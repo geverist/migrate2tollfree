@@ -2,7 +2,7 @@
 
 Setup Instructions Follow these steps to set up and run the toll-free number automation script:
 
-Prerequisites Node.js: Ensure you have Node.js installed. You can check by running:
+1. Prerequisites Node.js: Ensure you have Node.js installed. You can check by running:
 
 node -v
 
@@ -16,7 +16,8 @@ git clone https://github.com/geverist/migrate2tollfree.git
 
 cd migrate2tollfree
 
-Install Dependencies Once inside the project directory, install the necessary packages:
+3. Install Dependencies Once inside the project directory, install the necessary packages:
+
 npm install
 
 Configuration Environment Variables: Rename the .env.example file (if it exists) to .env and update the variables with your values, especially your parent account SID and auth token.
