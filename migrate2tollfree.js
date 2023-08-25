@@ -156,7 +156,7 @@ let email = null;
 
       // Incorporating the customerProfiles logic
       const customerProfileSid = customerProfiles.sid;
-      const customerProfilesEntityAssignments = await client.trusthub.v1.customerProfiles(customerProfileSid).customerProfilesEntityAssignments.list({limit: 20});
+      const customerProfilesEntityAssignments = await client.trusthub.v1.customerProfiles(customerProfileSid).customerProfilesEntityAssignments.list();
       
       // Filter out the assignments whose objectSid starts with "RD"
       const filteredAssignments = customerProfilesEntityAssignments.filter(c => c.objectSid.startsWith('RD'));
@@ -312,7 +312,7 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
         const longCodeNumbers = getLongCodeNumbers(phoneNumbers);
   
         // Get a list of campaigns associated with the messaging service
-        const campaigns = await client.messaging.v1.services(service.sid).usAppToPerson.list({ limit: 20 });
+        const campaigns = await client.messaging.v1.services(service.sid).usAppToPerson.list();
         let proceed = true;
         let hasCampaign = false;
         let campaign = null;
