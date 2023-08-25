@@ -381,21 +381,20 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
             break;
         }
 
-        if (purchasedCount === maxTollFreeNumbers) {
+        if (purchasedCount === maxTollFreeNumbers && unassignedTollFreeNumbers.length === 0) {
             console.log('Reached the maximum number of toll-free numbers allowed for purchase.');
-            break;
+            process.exit(0);  
         } else {
             // remove long code from messaging service
             await client.messaging.v1.services(service.sid).phoneNumbers(longCodeNumber.sid).remove();
             console.log(`Removed long code number ${longCodeNumber.phoneNumber} from Messaging Service SID: ${service.sid}`);
-
         }
         
           // Assign a toll-free number to the messaging service
           let assignedTollFreeNumber = null;
           if (unassignedTollFreeNumbers.length > 0) {
             assignedTollFreeNumber = unassignedTollFreeNumbers.shift(); // Remove the first unassigned toll-free number from the list
-            console.log(`Assigned existing toll-free number ${assignedTollFreeNumber.phoneNumber} to Messaging Service SID: ${service.sid}`);
+            console.log(`Assigned available toll-free number ${assignedTollFreeNumber.phoneNumber} to Messaging Service SID: ${service.sid}`);
             await client.messaging.v1.services(service.sid).phoneNumbers.create({ phoneNumberSid: assignedTollFreeNumber.sid });
             if (hasCampaign) {
                 handleTollFreeVerification(campaign, assignedTollFreeNumber, useCaseCategory, optInType, monthlyMessageVolume, optInImageUrls);
@@ -418,10 +417,7 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
               }
             }
             purchasedCount++;
-        } else {
-            console.log('Reached the maximum number of toll-free numbers allowed for purchase.');
-            break; 
-          }
+        } 
           }
         }
       }
