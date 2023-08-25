@@ -346,7 +346,7 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
             }
         }
 
-        // If the messaging service has a successful campaign, skip it
+        // If the messaging service has a successful campaign or no campaigns associated, skip it
         if (!proceed) {
           console.log(`Messaging Service ${service.sid} has either a successful campaign or no campaign. Skipping this service.`);
           continue;
