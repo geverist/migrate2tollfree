@@ -381,10 +381,12 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
             break;
         }
 
-        // remove long code from messaging service
+        if (purchasedCount < maxTollFreeNumbers) {
+            // remove long code from messaging service
             await client.messaging.v1.services(service.sid).phoneNumbers(longCodeNumber.sid).remove();
             console.log(`Removed long code number ${longCodeNumber.phoneNumber} from Messaging Service SID: ${service.sid}`);
-
+        }
+        
           // Assign a toll-free number to the messaging service
           let assignedTollFreeNumber = null;
           if (unassignedTollFreeNumbers.length > 0) {
