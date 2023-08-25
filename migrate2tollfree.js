@@ -381,8 +381,9 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
             break;
         }
 
-        // Remove the long code number from the messaging service
-        await removeLongCodeFromService(service.sid, longCodeNumber);
+        // remove long code from messaging service
+            await client.messaging.v1.services(service.sid).phoneNumbers(longCodeNumber.sid).remove();
+            console.log(`Removed long code number ${longCodeNumber.phoneNumber} from Messaging Service SID: ${service.sid}`);
 
           // Assign a toll-free number to the messaging service
           let assignedTollFreeNumber = null;
@@ -425,12 +426,6 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
       // Handle errors
       console.error('Failed:', error);
     }
-};
-  
-// remove long code from messaging service
-const removeLongCodeFromService = async (serviceSid, longCodeNumber) => {
-    await client.messaging.v1.services(serviceSid).phoneNumbers(longCodeNumber.sid).remove();
-    console.log(`Removed long code number ${longCodeNumber.phoneNumber} from Messaging Service SID: ${serviceSid}`);
 };
 
 const rl = readline.createInterface({
