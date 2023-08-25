@@ -134,19 +134,22 @@ let email = null;
       const customerProfiles = await client.trusthub.v1.customerProfiles(brandRegistration.customerProfileBundleSid).fetch();
       
       // Fetch end users
-      const endUsers = await client.trusthub.v1.endUsers.list({ limit: 20 });
-      
+      const endUsers = await client.trusthub.v1.endUsers.list();
+
       for (const endUser of endUsers) {
-          const fetchedEndUser = await client.trusthub.v1.endUsers(endUser.sid).fetch();
-          
-          if (fetchedEndUser.friendlyName === 'customer_profile_business_information') {
-            businessName = fetchedEndUser.attributes.business_name;
-            websiteURL = fetchedEndUser.attributes.website_url;
-          } else if (fetchedEndUser.friendlyName === 'authorized_representative_1') {
-            phoneNumber = fetchedEndUser.attributes.phone_number;
-            firstName = fetchedEndUser.attributes.first_name;
-            lastName = fetchedEndUser.attributes.last_name;
-            businessTitle = fetchedEndUser.attributes.business_title;
+          if (endUser.type === 'customer_profile_business_information' || endUser.type === 'authorized_representative_1') {
+              const fetchedEndUser = await client.trusthub.v1.endUsers(endUser.sid).fetch();
+              console.log(fetchedEndUser);
+              
+              if (fetchedEndUser.type === 'customer_profile_business_information') {
+                  businessName = fetchedEndUser.attributes.business_name;
+                  websiteURL = fetchedEndUser.attributes.website_url;
+              } else if (fetchedEndUser.type === 'authorized_representative_1') {
+                  phoneNumber = fetchedEndUser.attributes.phone_number;
+                  firstName = fetchedEndUser.attributes.first_name;
+                  lastName = fetchedEndUser.attributes.last_name;
+                  businessTitle = fetchedEndUser.attributes.business_title;
+              }
           }
       }
       email = customerProfiles.email
@@ -231,7 +234,7 @@ const handleTollFreeVerification = async (campaign, purchasedNumber, useCaseCate
     try {
         // First, fetch the required data
         const result = await extractExistingBrandAndCampaignData(campaign);
-
+console.log(result)
         console.log('Sending Verification for Toll Free with Existing Campaign/Brand Data');
 
         await client.messaging.v1.tollfreeVerifications.create({
@@ -378,6 +381,9 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
             break;
         }
 
+        // Remove the long code number from the messaging service
+        await removeLongCodeFromService(service.sid, longCodeNumber);
+
           // Assign a toll-free number to the messaging service
           let assignedTollFreeNumber = null;
           if (unassignedTollFreeNumbers.length > 0) {
@@ -421,6 +427,12 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
     }
 };
   
+// remove long code from messaging service
+const removeLongCodeFromService = async (serviceSid, longCodeNumber) => {
+    await client.messaging.v1.services(serviceSid).phoneNumbers(longCodeNumber.sid).remove();
+    console.log(`Removed long code number ${longCodeNumber.phoneNumber} from Messaging Service SID: ${serviceSid}`);
+};
+
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
