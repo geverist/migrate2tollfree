@@ -324,7 +324,7 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
                 proceed = false;  
                 console.log(`No campaigns associated with messaging service ${service.sid} - skipping number`);
             } else if (onlyPending) {
-                console.log(`No campaigns are associated with messaging service ${service.sid} - swapping number anyway`);
+                console.log(`No campaigns are associated with messaging service ${service.sid} - continuing to evaluate`);
                 hasCampaign = false;
                 proceed = true;  
             } else {
