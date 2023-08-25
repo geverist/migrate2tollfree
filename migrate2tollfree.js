@@ -385,7 +385,7 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
             console.log('Reached the maximum number of toll-free numbers allowed for purchase.');
             process.exit(0);  
         } else {
-            // remove long code from messaging service
+            // remove long code from the messaging service
             await client.messaging.v1.services(service.sid).phoneNumbers(longCodeNumber.sid).remove();
             console.log(`Removed long code number ${longCodeNumber.phoneNumber} from Messaging Service SID: ${service.sid}`);
         }
