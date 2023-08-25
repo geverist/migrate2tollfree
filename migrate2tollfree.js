@@ -390,8 +390,7 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
             console.log(`Removed long code number ${longCodeNumber.phoneNumber} from Messaging Service SID: ${service.sid}`);
 
         }
-
-
+        
           // Assign a toll-free number to the messaging service
           let assignedTollFreeNumber = null;
           if (unassignedTollFreeNumbers.length > 0) {
