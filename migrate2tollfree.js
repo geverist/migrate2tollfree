@@ -381,12 +381,17 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
             break;
         }
 
-        if (purchasedCount < maxTollFreeNumbers) {
+        if (purchasedCount === maxTollFreeNumbers) {
+            console.log('Reached the maximum number of toll-free numbers allowed for purchase.');
+            break;
+        } else {
             // remove long code from messaging service
             await client.messaging.v1.services(service.sid).phoneNumbers(longCodeNumber.sid).remove();
             console.log(`Removed long code number ${longCodeNumber.phoneNumber} from Messaging Service SID: ${service.sid}`);
+
         }
-        
+
+
           // Assign a toll-free number to the messaging service
           let assignedTollFreeNumber = null;
           if (unassignedTollFreeNumbers.length > 0) {
@@ -418,9 +423,6 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
             console.log('Reached the maximum number of toll-free numbers allowed for purchase.');
             break; 
           }
-        // Remove the long code number from the messaging service
-            await client.messaging.v1.services(service.sid).phoneNumbers(longCodeNumber.sid).remove();
-            console.log(`Removed long code number ${longCodeNumber.phoneNumber} from Messaging Service SID: ${service.sid}`);
           }
         }
       }
