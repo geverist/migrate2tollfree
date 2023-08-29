@@ -139,7 +139,6 @@ let email = null;
       for (const endUser of endUsers) {
           if (endUser.type === 'customer_profile_business_information' || endUser.type === 'authorized_representative_1') {
               const fetchedEndUser = await client.trusthub.v1.endUsers(endUser.sid).fetch();
-              console.log(fetchedEndUser);
               
               if (fetchedEndUser.type === 'customer_profile_business_information') {
                   businessName = fetchedEndUser.attributes.business_name;
@@ -234,7 +233,6 @@ const handleTollFreeVerification = async (campaign, purchasedNumber, useCaseCate
     try {
         // First, fetch the required data
         const result = await extractExistingBrandAndCampaignData(campaign);
-console.log(result)
         console.log('Sending Verification for Toll Free with Existing Campaign/Brand Data');
 
         await client.messaging.v1.tollfreeVerifications.create({
@@ -266,7 +264,7 @@ console.log(result)
 };
 
 // Function to iterate through all subaccounts associated to the parent account and execute replaceLongCodeWithTollFree
-const replaceForAllSubaccounts = async (onlyPending, useCaseCategory, optInType, monthlyMessageVolume, optInImageUrls) => {
+const replaceForAllSubaccounts = async (skipErrorCheck, onlyPending, useCaseCategory, optInType, monthlyMessageVolume, optInImageUrls) => {
 
     const excludedSIDs = exclusionFilePath ? readExclusionCSV(exclusionFilePath) : new Set();
 
@@ -287,7 +285,7 @@ const replaceForAllSubaccounts = async (onlyPending, useCaseCategory, optInType,
             // Create a Twilio client for the subaccount
             const subaccountClient = twilio(subaccount.sid, subaccount.authToken);
 
-            await replaceLongCodeWithTollFree(subaccountClient, onlyPending); 
+            await replaceLongCodeWithTollFree(skipErrorCheck, subaccountClient, onlyPending); 
         }
     } catch (error) {
         console.error("Error processing subaccounts:", error);
@@ -295,7 +293,7 @@ const replaceForAllSubaccounts = async (onlyPending, useCaseCategory, optInType,
 };
 
 // Function to replace long code numbers with toll-free numbers in messaging services
-const replaceLongCodeWithTollFree = async (client, onlyPending) => {
+const replaceLongCodeWithTollFree = async (skipErrorCheck, client, onlyPending) => {
 
     try {
       // Get a list of all messaging services and unassigned toll-free numbers
@@ -375,10 +373,14 @@ const replaceLongCodeWithTollFree = async (client, onlyPending) => {
         // Get the count of 30034 and 30035 error messages sent from the long code number in the last 7 days
         const errorMessagesCount = await getErrorMessagesCountInLast7Days(client.accountSid, longCodeNumber.phoneNumber);
 
+        if (skipErrorCheck) {
+            console.log(`No 30034 or 30035 error messages sent from ${longCodeNumber.phoneNumber} in the last 7 days. Continuing anyway.`);
+        } else {
         // If no 30034 or 30035 error messages were sent, skip the number
         if (errorMessagesCount <= 0) {
             console.log(`No 30034 or 30035 error messages sent from ${longCodeNumber.phoneNumber} in the last 7 days. Skipping this number.`);
             break;
+        }
         }
 
         if (purchasedCount === maxTollFreeNumbers && unassignedTollFreeNumbers.length === 0) {
@@ -452,6 +454,16 @@ const isValidUrl = (string) => {
 
 // User dialog to capture additional fields needed during the TFN verification step.  These will be the same across all submissions which may be problematic for approvals in some cases.
 
+
+// Next prompt: Ask if user wants to skip checking on 30034 or 30035 errors
+rl.question('Would you like to skip the step of checking on 30034 or 30035 errors on 10DLC numbers in the past 7 days? (yes/no): ', (skipErrorCheckAnswer) => {
+    if (skipErrorCheckAnswer.toLowerCase() !== 'yes' && skipErrorCheckAnswer.toLowerCase() !== 'no') {
+        console.error('Invalid choice. Please enter "yes" or "no".');
+        rl.close();
+        return;
+    }
+    const skipErrorCheck = (skipErrorCheckAnswer.toLowerCase() === 'yes');
+ 
 // Ask the user for the max number of toll-free numbers they want to purchase
 rl.question('Do you want to swap numbers on all accounts without a successful campaign (TFN verification on messaging services with failed campaigns or no campaign will NOT be sent, you will need to verify those numbers outside of this script)? (yes/no): ', (pendingAnswer) => {
     const onlyPending = (pendingAnswer.toLowerCase() === 'yes');
@@ -502,7 +514,7 @@ rl.question('Do you want to swap numbers on all accounts without a successful ca
                                         if (isValidUrl(urlAnswer)) {
                                             optInImageUrls = urlAnswer;
                                             rl.close();
-                                            replaceForAllSubaccounts(onlyPending, useCaseCategory, optInType, monthlyMessageVolume, optInImageUrls);
+                                            replaceForAllSubaccounts(skipErrorCheck, onlyPending, useCaseCategory, optInType, monthlyMessageVolume, optInImageUrls);
                                         } else {
                                             console.error('Invalid URL provided for OptInImageUrls. Please check and provide a valid URL.');
                                             rl.close();
@@ -529,4 +541,5 @@ rl.question('Do you want to swap numbers on all accounts without a successful ca
             });
         });
     });
+});
 });
